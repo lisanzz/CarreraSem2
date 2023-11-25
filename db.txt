@@ -1,0 +1,151 @@
+/* CREAR BD Y TABLAS */
+
+
+Create database Carreras
+GO
+
+Use Carreras
+GO
+
+create table Carreras (
+id_carrera int identity(1,1),
+nombre varchar(100) not null,
+constraint pk_Carreras primary key (id_carrera)
+)
+
+create table Asignaturas (
+id_asignatura int identity(1,1),
+nombre varchar(100) not null,
+constraint pk_Asignaturas primary key (id_asignatura)
+)
+
+create table DetalleCarreras(
+id_detalleCarrera int identity(1,1),
+anio_cursado int not null,
+cuatrimestre int not null,
+id_carrera int not null,
+id_asignatura int not null,
+constraint pk_DetalleCarreras primary key (id_detalleCarrera),
+constraint fk_Carreras foreign key (id_carrera) references Carreras (id_carrera),
+constraint fk_Asignaturas foreign key (id_asignatura) references Asignaturas(id_asignatura)
+)
+
+
+
+/* INSERTAR  */
+
+
+insert into asignaturas values ('Algebra 1')
+insert into asignaturas values ('Algebra 2')
+insert into asignaturas values ('Estadísticas')
+insert into asignaturas values ('Fisica')
+insert into asignaturas values ('Inglés 1')
+insert into asignaturas values ('Inglés 2')
+insert into asignaturas values ('Laboratorio de Computacion 1')
+insert into asignaturas values ('Laboratorio de Computacion 2')
+insert into asignaturas values ('Laboratorio 2')
+insert into asignaturas values ('Legislación')
+insert into asignaturas values ('Matemática')
+insert into asignaturas values ('Metodología de Sistemas 1')
+insert into asignaturas values ('Programación 1')
+insert into asignaturas values ('Programación 2')
+insert into asignaturas values ('Programación 3')
+insert into asignaturas values ('Arquitectura y Sistemas Operativos 1')
+
+INSERT INTO Carreras ( nombre) Values ('Ingenieria en sistemas')
+INSERT INTO Carreras ( nombre) Values ('Ingenieria industrial')
+INSERT INTO Carreras ( nombre) Values ('Ingenieria civil')
+INSERT INTO Carreras ( nombre) Values ('Ingenieria metalurgica ')
+INSERT INTO Carreras ( nombre) Values ('Ingenieria quimica ')
+
+
+
+
+/* PROCEDIMIENTOS ALMACENADOS */
+
+
+
+Create proc [dbo].[consultarAsignaturas]
+as
+select * from Asignaturas
+
+
+CREATE procedure [dbo].[consultarCarreras]
+as
+select * from Carreras
+
+
+Create proc [dbo].[sp_consultar_asignaturas]
+as
+begin
+	select id_asignatura, nombre from asignaturas
+	order by nombre
+end
+
+CREATE proc [dbo].[sp_consultar_carreras]
+as
+begin
+	select id_carrera, nombre from carreras
+	order by id_carrera
+end
+
+
+CREATE PROCEDURE [dbo].[sp_consultar_detalleCarreras]
+    @id_carrera int
+AS
+BEGIN
+    SELECT c.nombre AS 'Carrera',
+           a.nombre AS 'Nombre Asignatura',
+           dc.anio_cursado AS 'Año Cursado', 
+           dc.cuatrimestre AS 'Cuatrimestre'
+    FROM detalleCarreras AS dc 
+    INNER JOIN asignaturas AS a ON dc.id_asignatura = a.id_asignatura
+    INNER JOIN carreras AS c ON dc.id_carrera = c.id_carrera
+    WHERE c.id_carrera = @id_carrera 
+    ORDER BY c.id_carrera;
+END
+
+
+
+CREATE PROCEDURE [dbo].[sp_eliminar_carrera]
+    @id_carrera INT
+AS
+BEGIN
+   
+    IF EXISTS (SELECT 1 FROM carreras WHERE id_carrera = @id_carrera)
+    BEGIN
+       
+        DELETE FROM detalleCarreras WHERE id_carrera = @id_carrera;
+
+        
+        DELETE FROM carreras WHERE id_carrera = @id_carrera;
+
+        PRINT 'Carrera eliminada correctamente.';
+    END
+    ELSE
+    BEGIN
+        PRINT 'no se encontro la carrera.';
+    END
+END
+
+
+CREATE PROCEDURE [dbo].[sp_insertar_carrera]
+@nombre VARCHAR(100),
+@new_id_carrera INT OUTPUT
+AS
+BEGIN
+    INSERT INTO carreras(nombre) VALUES (@nombre);
+    SET @new_id_carrera = SCOPE_IDENTITY();
+END
+
+CREATE proc [dbo].[sp_insertar_detalleCarreras]
+@anioCursado int,
+@cuatrimestre int,
+@id_carrera int,
+@id_asignatura int
+
+as
+begin
+	insert into DetalleCarreras(anio_cursado, cuatrimestre, id_carrera, id_asignatura)
+	values(@anioCursado, @cuatrimestre, @id_carrera, @id_asignatura)
+end
